@@ -13,7 +13,7 @@
       const theme = preference === 'dark' || preference === 'light' ? preference : matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
       document.documentElement.dataset.theme = theme;
       document.documentElement.style.colorScheme = theme;
-      document.querySelector('meta[name="theme-color"]').content = theme === 'dark' ? '#171e19' : '#f8f7f2';
+      document.querySelector('meta[name="theme-color"]').content = theme === 'dark' ? '#252226' : '#f8f7f2';
     })();
   </script>
   <link rel="icon" href="./favicon.svg" type="image/svg+xml">
@@ -21,6 +21,7 @@
   <link rel="stylesheet" href="./dark.css">
   <link rel="stylesheet" href="./projects.css">
   <link rel="stylesheet" href="./accounts.css">
+  <link rel="stylesheet" href="./profile-photo.css">
   <script type="module" src="./app.js"></script>
 </head>
 <body>
@@ -38,7 +39,7 @@
       <button class="icon-button theme-toggle" id="theme-toggle" type="button" aria-label="Ativar modo escuro" aria-pressed="false" title="Ativar modo escuro"><span data-icon="moon"></span></button>
       <button class="icon-button" id="help-button" aria-label="Como usar" title="Como usar"><span data-icon="help"></span></button>
       <button class="button button-outline backup-header" id="backup-button"><span data-icon="download"></span>Backup</button>
-      <button class="button button-outline account-button" id="account-button" type="button"><span data-icon="user"></span><span>Entrar</span></button>
+      <button class="button button-outline account-button" id="account-button" type="button"><span class="profile-photo profile-photo-header" data-profile-photo aria-hidden="true"><span data-icon="user"></span></span><span>Entrar</span></button>
     </div>
   </header>
   <div id="cloud-banner" class="cloud-banner" role="status" aria-live="polite" hidden></div>
