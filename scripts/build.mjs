@@ -1,13 +1,13 @@
-import {build} from 'esbuild';
-import {mkdir, writeFile} from 'node:fs/promises';
+import {access, writeFile} from 'node:fs/promises';
 import {existsSync} from 'node:fs';
-import {fileURLToPath} from 'node:url';
 import {publicConfiguration} from './public-config.mjs';
 
-const root = fileURLToPath(new URL('../', import.meta.url));
 if (existsSync(new URL('../.env', import.meta.url))) process.loadEnvFile(new URL('../.env', import.meta.url));
 const config = publicConfiguration(process.env);
-await mkdir(new URL('../dist/vendor/', import.meta.url), {recursive: true});
-await build({entryPoints: [root + 'src/supabase-browser.js'], outfile: root + 'dist/vendor/supabase.js', bundle: true, minify: true, format: 'esm', platform: 'browser', target: 'es2022', legalComments: 'eof', logLevel: 'warning'});
+// The SDK is already bundled and versioned in dist/vendor. Deployment only
+// validates its presence and generates the public configuration. No package
+// from node_modules is required by this build script.
+try { await access(new URL('../dist/vendor/supabase.js', import.meta.url)); }
+catch { throw new Error('SDK ausente: envie dist/vendor/supabase.js do ZIP para o GitHub antes de publicar.'); }
 await writeFile(new URL('../dist/public-config.js', import.meta.url), `// Gerado por npm run build. Contém somente a configuração pública.\nexport const publicConfig = ${JSON.stringify(config, null, 2)};\n`);
 console.log(config.enabled ? 'Build concluído: contas conectadas à configuração Supabase.' : 'Build concluído: modo local. Configure o Supabase para ativar as contas.');
