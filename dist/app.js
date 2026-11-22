@@ -28,7 +28,7 @@ function applyTheme(theme, remember = false) {
  const dark = theme === 'dark';
  document.documentElement.dataset.theme = dark ? 'dark' : 'light';
  document.documentElement.style.colorScheme = dark ? 'dark' : 'light';
- $('meta[name="theme-color"]').content = dark ? '#171e19' : '#f8f7f2';
+ $('meta[name="theme-color"]').content = dark ? '#252226' : '#f8f7f2';
  const button = $('#theme-toggle');
  button.innerHTML = icon(dark ? 'sun' : 'moon');
  button.setAttribute('aria-pressed', String(dark));
