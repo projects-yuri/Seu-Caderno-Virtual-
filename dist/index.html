@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#f8f7f2">
+  <meta name="description" content="Organize seus estudos em projetos, cadernos e páginas. Uma mesa para cada projeto, modo escuro e até três cadernos e 300 páginas no total.">
+  <title>Seu Caderno Virtual!</title>
+  <script>
+    (() => {
+      let preference;
+      try { preference = localStorage.getItem('seu-caderno-virtual:theme'); } catch {}
+      const theme = preference === 'dark' || preference === 'light' ? preference : matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.dataset.theme = theme;
+      document.documentElement.style.colorScheme = theme;
+      document.querySelector('meta[name="theme-color"]').content = theme === 'dark' ? '#171e19' : '#f8f7f2';
+    })();
+  </script>
+  <link rel="icon" href="./favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./styles.css">
+  <link rel="stylesheet" href="./dark.css">
+  <link rel="stylesheet" href="./projects.css">
+  <script type="module" src="./app.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Pular para o conteúdo</a>
+  <header class="site-header">
+    <a href="#/projetos" class="brand" aria-label="Seu Caderno Virtual, meus projetos">
+      <span class="brand-icon" id="brand-icon"></span>
+      <span>Seu Caderno<span class="brand-second">Virtual<span class="brand-dot">.</span></span></span>
+    </a>
+    <nav class="main-nav" aria-label="Navegação principal">
+      <a href="#/projetos" data-nav="projetos"><span data-icon="folder"></span>Meus projetos</a>
+      <a href="#/notas" data-nav="notas"><span data-icon="notes"></span>Todas as notas</a>
+    </nav>
+    <div class="header-actions">
+      <button class="icon-button theme-toggle" id="theme-toggle" type="button" aria-label="Ativar modo escuro" aria-pressed="false" title="Ativar modo escuro"><span data-icon="moon"></span></button>
+      <button class="icon-button" id="help-button" aria-label="Como usar" title="Como usar"><span data-icon="help"></span></button>
+      <button class="button button-outline backup-header" id="backup-button"><span data-icon="download"></span>Backup</button>
+      <span class="personal-mark" title="Seu espaço pessoal"><span data-icon="user"></span></span>
+    </div>
+  </header>
+  <main id="main" tabindex="-1"></main>
+  <footer class="site-footer" id="site-footer"><span>Feito para dar espaço às suas ideias.</span><span><span data-icon="lock"></span>Suas anotações ficam neste navegador.</span><a href="https://github.com/projects-yuri/Seu-Caderno-Virtual-" target="_blank" rel="noopener noreferrer">Um projeto em construção<span data-icon="github"></span></a></footer>
+  <dialog id="app-dialog" aria-labelledby="dialog-title"></dialog>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <input type="file" id="import-file" accept="application/json,.json" hidden>
+  <noscript>Ative o JavaScript para abrir e editar os seus cadernos.</noscript>
+</body>
+</html>
