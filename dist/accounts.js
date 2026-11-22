@@ -1,4 +1,5 @@
 import {icon} from './icons.js';
+import {ProfilePhoto} from './profile-photo.js';
 import {publicConfig} from './public-config.js';
 import {WorkspaceSync, accountCacheKey, emptyWorkspace} from './cloud-sync.js';
 import {supabaseWorkspaceApi} from './cloud-provider.js';
@@ -14,12 +15,29 @@ export function createAccountController(options) {
  const banner = document.querySelector('#cloud-banner');
  let client = null; let engine = null; let user = null; let phase = 'local'; let recovery = false;
  let eventNumber = 0; let migrationOffered = false; let statusMessage = ''; let subscription; let refreshTimer;
+ const photo = new ProfilePhoto({getClient: () => client, onChange: paintPhoto});
  const refresh = () => { if (user && document.visibilityState === 'visible') void engine.refresh(); };
  const redirectTo = () => location.origin + location.pathname;
  const field = selector => dialog.querySelector(selector);
  function statusText() { return phase === 'synced' && engine?.revision === 0 ? 'Conta pronta' : labels[phase] || labels.local; }
+ function paintPhoto() {
+  document.querySelectorAll('[data-profile-photo]').forEach(slot => {
+   slot.replaceChildren();
+   if (photo.url) {
+    const image = document.createElement('img'); image.src = photo.url; image.alt = ''; slot.append(image);
+   } else slot.innerHTML = icon('user');
+  });
+  const choose = field('#choose-profile-photo');
+  if (choose) { choose.disabled = photo.busy; choose.textContent = photo.url ? 'Trocar foto' : 'Adicionar foto'; }
+  const remove = field('#remove-profile-photo');
+  if (remove) { remove.disabled = photo.busy; remove.hidden = !photo.url; }
+  const output = field('#photo-message');
+  if (output) { output.textContent = photo.message; output.classList.toggle('error', photo.failed); }
+ }
  function draw() {
-  button.innerHTML = `${icon('user')}<span>${user ? 'Minha conta' : 'Entrar'}</span>`;
+  button.innerHTML = `<span class="profile-photo profile-photo-header" data-profile-photo aria-hidden="true"></span><span>${user ? 'Minha conta' : 'Entrar'}</span>`;
+  photo.setUser(user?.id || null);
+  paintPhoto();
   button.setAttribute('aria-label', user ? `Abrir conta de ${user.email || 'usuário'}` : 'Entrar ou criar conta');
   button.title = user ? 'Minha conta' : 'Entrar ou criar conta';
   indicator.innerHTML = `${icon(user ? 'cloud' : 'lock')}<span>${escape(user ? statusText() : labels.local)}</span>`;
@@ -143,7 +161,15 @@ export function createAccountController(options) {
   const guest = readGuest();
   let archived = false;
   try { archived = !!(localStorage.getItem(accountCacheKey(user.id) + ':recuperacao') || localStorage.getItem(accountCacheKey(user.id) + ':rascunhos')); } catch {}
-  options.openDialog('Sua conta, suas ideias.', `<div class="account-identity">${icon('user')}<div><strong>${escape(user.email)}</strong><span id="account-live-status">${escape(statusText())}</span></div></div><p class="dialog-description">Projetos e páginas ficam vinculados a esta conta. Entre com ela em outro aparelho para recuperar o que já chegou à nuvem.</p>${conflict ? '<div class="account-conflict"><strong>Há duas versões para revisar.</strong><p>Uma edição em outro aparelho mudou a nuvem. Baixe as duas cópias antes de escolher qual deve continuar.</p><div class="account-conflict-actions"><button class="button button-outline" id="download-local-conflict">Baixar deste aparelho</button><button class="button button-outline" id="download-cloud-conflict">Baixar da nuvem</button><button class="button button-outline" id="use-cloud-version">Usar versão da nuvem</button><button class="button button-primary" id="use-local-version">Usar versão deste aparelho</button></div></div>' : ''}<div class="account-options"><button class="backup-option" id="sync-account">${icon('cloud')}<span><strong>Sincronizar agora</strong><small>Conferir e enviar as alterações pendentes.</small></span></button><button class="backup-option" id="account-backup">${icon('download')}<span><strong>Baixar backup desta conta</strong><small>Guarde uma cópia dos projetos e anotações.</small></span></button>${guest?.projects.length && engine.ready && !engine.conflict ? `<button class="backup-option" id="bring-local-projects">${icon('upload')}<span><strong>Trazer para esta conta</strong><small>Você poderá revisar antes de substituir os projetos da conta.</small></span></button>` : ''}</div>${archived ? '<button class="button button-outline" id="account-recovery-download">Baixar versões preservadas neste aparelho</button>' : ''}<p id="account-action-message" class="auth-message" role="status"></p><div class="dialog-actions"><button class="button button-outline" id="close-account">Fechar</button><button class="button button-outline" id="signout-account">Sair da conta</button></div>`);
+  options.openDialog('Sua conta, suas ideias.', `<div class="account-identity"><span class="profile-photo profile-photo-large" data-profile-photo aria-hidden="true"></span><div><strong>${escape(user.email)}</strong><span id="account-live-status">${escape(statusText())}</span></div></div><div class="profile-photo-controls"><input id="profile-photo-file" type="file" accept="image/jpeg,image/png,image/webp" hidden><button type="button" class="button button-outline" id="choose-profile-photo">Adicionar foto</button><button type="button" class="text-button" id="remove-profile-photo" hidden>Remover foto</button></div><p class="photo-hint">JPG, PNG ou WebP · até 8 MB. A foto será ajustada para o círculo e salva nesta conta.</p><p id="photo-message" class="auth-message" role="status" aria-live="polite"></p><p class="dialog-description">Projetos e páginas ficam vinculados a esta conta. Entre com ela em outro aparelho para recuperar o que já chegou à nuvem.</p>${conflict ? '<div class="account-conflict"><strong>Há duas versões para revisar.</strong><p>Uma edição em outro aparelho mudou a nuvem. Baixe as duas cópias antes de escolher qual deve continuar.</p><div class="account-conflict-actions"><button class="button button-outline" id="download-local-conflict">Baixar deste aparelho</button><button class="button button-outline" id="download-cloud-conflict">Baixar da nuvem</button><button class="button button-outline" id="use-cloud-version">Usar versão da nuvem</button><button class="button button-primary" id="use-local-version">Usar versão deste aparelho</button></div></div>' : ''}<div class="account-options"><button class="backup-option" id="sync-account">${icon('cloud')}<span><strong>Sincronizar agora</strong><small>Conferir e enviar as alterações pendentes.</small></span></button><button class="backup-option" id="account-backup">${icon('download')}<span><strong>Baixar backup desta conta</strong><small>Guarde uma cópia dos projetos e anotações.</small></span></button>${guest?.projects.length && engine.ready && !engine.conflict ? `<button class="backup-option" id="bring-local-projects">${icon('upload')}<span><strong>Trazer para esta conta</strong><small>Você poderá revisar antes de substituir os projetos da conta.</small></span></button>` : ''}</div>${archived ? '<button class="button button-outline" id="account-recovery-download">Baixar versões preservadas neste aparelho</button>' : ''}<p id="account-action-message" class="auth-message" role="status"></p><div class="dialog-actions"><button class="button button-outline" id="close-account">Fechar</button><button class="button button-outline" id="signout-account">Sair da conta</button></div>`);
+  paintPhoto();
+  void photo.refresh();
+  field('#choose-profile-photo').onclick = () => field('#profile-photo-file').click();
+  field('#profile-photo-file').onchange = event => {
+   const file = event.target.files?.[0]; event.target.value = '';
+   if (file) void photo.save(file);
+  };
+  field('#remove-profile-photo').onclick = () => void photo.remove();
   const output = field('#account-action-message');
   field('#close-account').onclick = () => dialog.close();
   if (field('#account-recovery-download')) field('#account-recovery-download').onclick = () => {
@@ -212,6 +238,6 @@ export function createAccountController(options) {
   start, open: openAccount, get user() { return user; }, get phase() { return phase; }, get ready() { return !!engine?.ready; },
   statusText, save(document) { return engine.queue(document); },
   handleStorage(event) { if (user && event.key === accountCacheKey(user.id)) engine.externalChange(); },
-  dispose() { subscription?.unsubscribe(); clearInterval(refreshTimer); window.removeEventListener('online', refresh); window.removeEventListener('focus', refresh); engine?.stop(); }
+  dispose() { photo.dispose(); subscription?.unsubscribe(); clearInterval(refreshTimer); window.removeEventListener('online', refresh); window.removeEventListener('focus', refresh); engine?.stop(); }
  };
 }
