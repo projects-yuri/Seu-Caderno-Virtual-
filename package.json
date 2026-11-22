@@ -1,19 +1,24 @@
 {
   "name": "seu-caderno-virtual",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "private": true,
   "type": "module",
-  "description": "Projetos, cadernos e anotações em uma mesa virtual com modo escuro.",
+  "description": "Projetos e cadernos com contas por e-mail, modo escuro e sincronização na nuvem.",
   "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/projects-yuri/Seu-Caderno-Virtual-.git"
   },
   "scripts": {
+    "predev": "node scripts/build.mjs",
     "dev": "node scripts/dev-server.mjs",
+    "prestart": "node scripts/build.mjs",
     "start": "node scripts/dev-server.mjs",
-    "build": "npm run check",
+    "build": "npm run check && node scripts/build.mjs",
     "test": "node --test tests/*.test.js",
-    "check": "node --check dist/app.js && node --check dist/storage.js && node --check dist/icons.js && node --check scripts/dev-server.mjs"
-  }
+    "check": "node --check dist/app.js && node --check dist/storage.js && node --check dist/icons.js && node --check dist/accounts.js && node --check dist/cloud-sync.js && node --check dist/cloud-provider.js && node --check scripts/build.mjs && node --check scripts/dev-server.mjs"
+  },
+  "engines": {"node": ">=22"},
+  "dependencies": {"@supabase/supabase-js": "2.119.2"},
+  "devDependencies": {"esbuild": "0.28.2", "@electric-sql/pglite": "0.5.17"}
 }
