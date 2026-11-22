@@ -27,15 +27,15 @@
 .account-conflict-actions .button { font-size: 12px; }
 :root[data-theme="dark"] .cloud-synced { color: #a3c8ab; }
 :root[data-theme="dark"] .cloud-offline, :root[data-theme="dark"] .cloud-conflict, :root[data-theme="dark"] .cloud-error { color: #e2be85; }
-:root[data-theme="dark"] .cloud-banner { background: #27362a; color: #c1d8be; border-color: #3b4b3b; }
-:root[data-theme="dark"] .auth-tabs { background: #202b23; }
-:root[data-theme="dark"] .auth-tabs button[aria-selected="true"] { background: #37483a; color: #deebda; }
+:root[data-theme="dark"] .cloud-banner { background: #2d292e; color: #c1d8be; border-color: #1a1a1e; }
+:root[data-theme="dark"] .auth-tabs { background: #1a1a1e; }
+:root[data-theme="dark"] .auth-tabs button[aria-selected="true"] { background: #39323b; color: #deebda; }
 :root[data-theme="dark"] .auth-message { color: #b3d0b1; }
 :root[data-theme="dark"] .auth-message.error { color: #f2aaa0; }
-:root[data-theme="dark"] .account-footnote { color: #b1b9ad; border-color: #38453a; }
-:root[data-theme="dark"] .account-identity > .icon { background: #304333; color: #b2d3b4; }
+:root[data-theme="dark"] .account-footnote { color: #b1b9ad; border-color: #1a1a1e; }
+:root[data-theme="dark"] .account-identity > .icon { background: #353037; color: #b2d3b4; }
 :root[data-theme="dark"] .account-identity span { color: #b1b9ad; }
-:root[data-theme="dark"] .account-conflict { background: #3b3325; border-color: #6e5c3f; }
+:root[data-theme="dark"] .account-conflict { background: #353037; border-color: #1a1a1e; }
 @media (max-width: 700px) {
  .account-button { padding: 8px 10px; font-size: 12px; }
  .account-button .icon { width: 16px; height: 16px; }
