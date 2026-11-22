@@ -1,4 +1,5 @@
 const paths = {
+ cloud: '<path d="M7 18a5 5 0 1 1 1-9.9 6 6 0 0 1 11.7 2A4 4 0 0 1 19 18Z"/><path d="m9 13 2 2 4-4"/>',
  folder: '<path d="M3 7V4h6l3 3h9v13H3Z"/><path d="M3 10h18"/>',
  move: '<path d="M3 7V4h6l3 3h9v13H3Z"/><path d="M8 14h9m-3-3 3 3-3 3"/>',
  moon: '<path d="M20.5 13A8.5 8.5 0 0 1 11 3.5 8.5 8.5 0 1 0 20.5 13Z"/>',
