@@ -1,4 +1,5 @@
 import {icon} from './icons.js';
+import {createAccountController} from './accounts.js';
 import {STORAGE_KEY, COLORS, PAPERS, initialState, loadState, saveState, validateState, makeNotebook, makeProject, projectNotebooks, moveNotebook, removeProject, totalCapacity, canAddNotebook, usedPages, pageHasContent, plainText} from './storage.js';
 
 const $ = (selector, root = document) => root.querySelector(selector);
@@ -20,6 +21,7 @@ let notesProjectFilter = 'all';
 let editorSelection = null;
 let applyingExternalChange = false;
 let externalConflict = false;
+let accounts = null;
 
 function systemTheme() { return themeMedia.matches ? 'dark' : 'light'; }
 function applyTheme(theme, remember = false) {
@@ -72,15 +74,18 @@ function showStorageWarning(message) {
 }
 function setSaveStatus(saved) {
  const el = $('#save-status');
- if (el) { el.classList.toggle('failed', saved === false); el.innerHTML = `${icon(saved === false ? 'info' : saved ? 'check' : 'clock')}<span>${saved === false ? 'Não foi possível salvar' : saved ? 'Salvo neste navegador' : 'Salvando…'}</span>`; el.setAttribute('aria-label', el.textContent); }
+ const cloudText = accounts?.user ? accounts.statusText() : 'Salvo neste navegador';
+ if (el) { el.classList.toggle('failed', saved === false); el.innerHTML = `${icon(saved === false ? 'info' : saved ? 'check' : 'clock')}<span>${escapeHTML(saved === false ? 'Não foi possível salvar neste aparelho' : saved ? cloudText : 'Salvando…')}</span>`; el.setAttribute('aria-label', el.textContent); }
 }
 function persist() {
  clearTimeout(persistTimer);
  persistTimer = undefined;
  if (applyingExternalChange) return true;
+ if (accounts?.user && !accounts.ready) return true;
  if (recoveryRaw !== null || externalConflict) { setSaveStatus(false); return false; }
  try {
-  saveState(state); storageFailed = false; setSaveStatus(true);
+  if (accounts?.user) accounts.save(state); else saveState(state);
+  storageFailed = false; setSaveStatus(true);
   const banner = $('#storage-warning');
   if (banner) { banner.remove(); document.body.classList.remove('storage-warning-space'); }
   return true;
@@ -90,7 +95,11 @@ function persist() {
   return false;
  }
 }
-function scheduleSave() { setSaveStatus(null); clearTimeout(persistTimer); persistTimer = setTimeout(persist, 350); }
+function scheduleSave() {
+ setSaveStatus(null); clearTimeout(persistTimer);
+ // Cache an account edit immediately so a background refresh cannot replace it.
+ if (accounts?.user) persist(); else persistTimer = setTimeout(persist, 350);
+}
 function savePageFromDOM() {
  if (!activeBook || !$('#page-content')) return;
  const book = getBook(activeBook);
@@ -396,7 +405,7 @@ function deskDialog() {
  $('#done-desk').onclick = () => dialog.close();
 }
 function helpDialog() {
- openDialog('Uma página de cada vez.', `<p class="dialog-description">Um espaço simples para estudar, planejar e guardar o que importa.</p><div class="help-steps"><div class="help-step">${icon('book')}<div><strong>Comece por um projeto</strong>Crie projetos como “Faculdade — CD” e organize os cadernos por matéria. Clique na pasta para abrir sua mesa. O limite global é de 3 cadernos e 300 páginas.</div></div><div class="help-step">${icon('edit')}<div><strong>Abra um caderno e escreva</strong>Crie títulos, formate o texto, navegue pelas páginas e marque suas favoritas. O salvamento é automático.</div></div><div class="help-step">${icon('search')}<div><strong>Reencontre suas ideias</strong>Use “Todas as notas” para buscar em todos os projetos e cadernos. No editor, a busca fica só no caderno aberto.</div></div><div class="help-step">${icon('download')}<div><strong>Leve suas anotações com você</strong>Baixe e importe backups no botão do topo. Você também pode imprimir uma página ou salvá-la como PDF.</div></div></div><p class="privacy-note">${icon('lock')} Neste primeiro protótipo, as anotações ficam neste navegador. Para trocar de aparelho ou limpar os dados de navegação, baixe um backup antes.</p><div class="dialog-actions"><button class="button button-primary" id="help-done">Hora de escrever</button></div>`);
+ openDialog('Uma página de cada vez.', `<p class="dialog-description">Um espaço simples para estudar, planejar e guardar o que importa.</p><div class="help-steps"><div class="help-step">${icon('book')}<div><strong>Comece por um projeto</strong>Crie projetos como “Faculdade — CD” e organize os cadernos por matéria. Clique na pasta para abrir sua mesa. O limite global é de 3 cadernos e 300 páginas.</div></div><div class="help-step">${icon('edit')}<div><strong>Abra um caderno e escreva</strong>Crie títulos, formate o texto, navegue pelas páginas e marque suas favoritas. O salvamento é automático.</div></div><div class="help-step">${icon('search')}<div><strong>Reencontre suas ideias</strong>Use “Todas as notas” para buscar em todos os projetos e cadernos. No editor, a busca fica só no caderno aberto.</div></div><div class="help-step">${icon('download')}<div><strong>Leve suas anotações com você</strong>Baixe e importe backups no botão do topo. Você também pode imprimir uma página ou salvá-la como PDF.</div></div></div><p class="privacy-note">${icon('lock')} Sem entrar, as anotações ficam neste navegador. Entre na sua conta para sincronizar entre aparelhos e aguarde a indicação “Salvo na nuvem”. Guarde também um backup das suas ideias.</p><div class="dialog-actions"><button class="button button-primary" id="help-done">Hora de escrever</button></div>`);
  $('#help-done').onclick = () => dialog.close();
 }
 function downloadFile(content, filename, type) {
@@ -411,7 +420,7 @@ function exportBackup() {
 }
 function backupDialog() {
  savePageFromDOM(); persist();
- openDialog('Guarde uma cópia das suas ideias.', `<p class="dialog-description">Seu caderno vai junto, mesmo quando você muda de navegador.</p><div class="backup-options"><button class="backup-option" id="export-backup">${icon('download')}<span><strong>Baixar backup completo</strong><small>Todos os projetos, cadernos, capas e anotações em um arquivo JSON.</small></span></button><button class="backup-option" id="import-backup">${icon('upload')}<span><strong>Restaurar um backup</strong><small>Importe um arquivo exportado aqui. Você poderá revisar antes de substituir os cadernos atuais.</small></span></button></div><p class="privacy-note" style="margin-top:20px">${icon('lock')} Seus arquivos e anotações ficam com você. Não há sincronização entre aparelhos neste protótipo.</p>`);
+ openDialog('Guarde uma cópia das suas ideias.', `<p class="dialog-description">Seu caderno vai junto, mesmo quando você muda de navegador.</p><div class="backup-options"><button class="backup-option" id="export-backup">${icon('download')}<span><strong>Baixar backup completo</strong><small>Todos os projetos, cadernos, capas e anotações em um arquivo JSON.</small></span></button><button class="backup-option" id="import-backup">${icon('upload')}<span><strong>Restaurar um backup</strong><small>Importe um arquivo exportado aqui. Você poderá revisar antes de substituir os cadernos atuais.</small></span></button></div><p class="privacy-note" style="margin-top:20px">${icon('lock')} O backup contém os projetos abertos agora. Se estiver em uma conta, restaurar um arquivo também substituirá os projetos dessa conta na nuvem após sincronizar.</p>`);
  $('#export-backup').onclick = exportBackup;
  $('#import-backup').onclick = () => $('#import-file').click();
 }
@@ -426,7 +435,8 @@ async function importBackup(event) {
   confirmDialog('Restaurar estes cadernos?', `O arquivo contém ${imported.projects.length} projeto(s), ${imported.notebooks.length} caderno(s), ${totalCapacity(imported)} páginas e ${count} página(s) com anotações. A restauração substitui seus cadernos atuais. Baixe um backup deles antes, se precisar.`, 'Restaurar backup', () => {
    try {
     // Write first: a quota error must never erase the current notebooks.
-    saveState(imported); activeBook = null; state = imported; recoveryRaw = null; storageFailed = false; externalConflict = false; persist();
+    if (accounts?.user) accounts.save(imported); else saveState(imported);
+    activeBook = null; state = imported; recoveryRaw = null; storageFailed = false; externalConflict = false; persist();
     location.hash = '/projetos'; renderRoute(); toast('Projetos e cadernos restaurados. Suas ideias estão de volta.');
    } catch { toast('Não houve espaço para restaurar. Seus cadernos atuais foram preservados.', true); }
   });
@@ -452,13 +462,41 @@ document.addEventListener('visibilitychange', () => { if (document.visibilitySta
 window.addEventListener('beforeunload', event => { savePageFromDOM(); if (!persist()) { event.preventDefault(); event.returnValue = ''; } });
 window.addEventListener('storage', event => {
  if (event.key === THEME_KEY) { applyTheme(['dark', 'light'].includes(event.newValue) ? event.newValue : systemTheme()); return; }
+ if (accounts?.user) { accounts.handleStorage(event); return; }
  if (event.key !== STORAGE_KEY) return;
  if (persistTimer || storageFailed || recoveryRaw !== null || externalConflict) { externalConflict = true; clearTimeout(persistTimer); persistTimer = undefined; setSaveStatus(false); showStorageWarning('Outra aba alterou os cadernos. Exporte suas alterações antes de recarregar esta página.'); return; }
  try { const next = event.newValue ? validateState(JSON.parse(event.newValue)) : initialState(); activeBook = null; state = next; applyingExternalChange = true; renderRoute(); toast('Anotações atualizadas por outra aba.'); } catch { toast('Outra aba alterou os dados. Suas anotações abertas foram mantidas.', true); } finally { applyingExternalChange = false; }
 });
 document.addEventListener('keydown', event => {
- if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 's') { event.preventDefault(); savePageFromDOM(); if (persist()) toast('Tudo salvo neste navegador.'); }
+ if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 's') { event.preventDefault(); savePageFromDOM(); if (persist()) toast(accounts?.user ? accounts.statusText() : 'Tudo salvo neste navegador.'); }
  if (event.key === 'Escape') closeSidebar();
 });
 renderRoute();
 persist();
+accounts = createAccountController({
+ getWorkspace: () => state,
+ capture: () => { savePageFromDOM(); return persist(); },
+ beforeSwitch: () => { savePageFromDOM(); persist(); },
+ applyWorkspace(document) {
+  clearTimeout(persistTimer); persistTimer = undefined; activeBook = null; editorSelection = null;
+  recoveryRaw = null; externalConflict = false; storageFailed = false;
+  $('#storage-warning')?.remove(); document.body.classList.remove('storage-warning-space');
+  state = validateState(document); applyingExternalChange = true;
+  try { renderRoute(); } finally { applyingExternalChange = false; }
+ },
+ restoreGuest() {
+  clearTimeout(persistTimer); persistTimer = undefined; activeBook = null; editorSelection = null;
+  recoveryRaw = null; externalConflict = false; storageFailed = false;
+  $('#storage-warning')?.remove(); document.body.classList.remove('storage-warning-space');
+  try { state = loadState(); } catch {
+   try { recoveryRaw = localStorage.getItem(STORAGE_KEY); } catch { storageFailed = true; }
+   state = initialState(); showStorageWarning('Não foi possível abrir os projetos locais. Baixe o backup de recuperação antes de continuar.');
+  }
+  applyingExternalChange = true;
+  try { renderRoute(); } finally { applyingExternalChange = false; }
+ },
+ setLocked(locked) { main.inert = locked; $('#backup-button').disabled = locked; main.classList.toggle('account-loading', locked); },
+ onStatusChanged: () => setSaveStatus(!storageFailed),
+ download: downloadFile, openDialog, notify: toast
+});
+void accounts.start();
