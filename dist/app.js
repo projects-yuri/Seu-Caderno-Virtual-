@@ -477,11 +477,11 @@ accounts = createAccountController({
  getWorkspace: () => state,
  capture: () => { savePageFromDOM(); return persist(); },
  beforeSwitch: () => { savePageFromDOM(); persist(); },
- applyWorkspace(document) {
+ applyWorkspace(workspace) {
   clearTimeout(persistTimer); persistTimer = undefined; activeBook = null; editorSelection = null;
   recoveryRaw = null; externalConflict = false; storageFailed = false;
   $('#storage-warning')?.remove(); document.body.classList.remove('storage-warning-space');
-  state = validateState(document); applyingExternalChange = true;
+  state = validateState(workspace); applyingExternalChange = true;
   try { renderRoute(); } finally { applyingExternalChange = false; }
  },
  restoreGuest() {
