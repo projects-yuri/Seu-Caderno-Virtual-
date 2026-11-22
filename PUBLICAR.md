@@ -1,89 +1,79 @@
 # Publicar no GitHub e na Vercel
 
-Este pacote já contém o site completo, incluindo a organização Projetos → Cadernos, o modo escuro e a configuração da Vercel. Não precisa de banco de dados, senha de API ou variáveis de ambiente.
+Esta versão inclui projetos, cadernos, modo escuro e contas opcionais com Supabase. Sem configurar as contas, o site funciona com notas locais. Siga [ATIVAR_CONTAS.md](ATIVAR_CONTAS.md) para ativar a nuvem.
 
-## 1. Enviar os arquivos ao GitHub
+## 1. Atualizar o GitHub
 
-1. Extraia o ZIP em uma pasta no computador.
-2. Abra o repositório: https://github.com/projects-yuri/Seu-Caderno-Virtual-
-3. Clique em **Add file → Upload files**.
-4. Arraste os arquivos e pastas que estão **dentro da pasta extraída**, mantendo a estrutura. Não envie o ZIP fechado e não coloque tudo dentro de uma segunda pasta no repositório.
-5. O `package.json` e o `vercel.json` precisam aparecer diretamente na raiz do repositório, ao lado da pasta `dist`.
-6. Confirme em **Commit changes**. Se o GitHub pedir para substituir o README, use o README deste pacote. A licença MIT foi preservada.
+1. Extraia o ZIP e abra https://github.com/projects-yuri/Seu-Caderno-Virtual-
+2. Use **Add file → Upload files** e envie os arquivos e pastas **de dentro** da pasta extraída. Substitua os antigos pelos desta versão.
+3. Confira que `package.json`, `package-lock.json` e `vercel.json` estão na raiz, ao lado de `dist`, `scripts`, `src`, `supabase` e `tests`. Não envie o ZIP fechado nem crie uma pasta extra dentro do repositório.
+4. Confirme em **Commit changes**.
 
-Se preferir usar Git pelo terminal, clone o repositório, copie o conteúdo extraído para dentro da pasta clonada e execute nela:
+Não envie `node_modules`, `.env` com valores reais ou credenciais SMTP. O `.env.example` contém apenas nomes de variáveis e pode ser enviado; os guias também informam esses nomes caso o upload pelo navegador oculte arquivos iniciados por ponto.
+
+Se preferir Git, clone o repositório, copie o conteúdo extraído para a pasta clonada e execute nela:
 
 ```bash
 git add .
-git commit -m "feat: adiciona Seu Caderno Virtual com modo escuro e deploy Vercel"
+git commit -m "feat: adiciona contas e sincronizacao com Supabase"
 git push origin main
 ```
 
-## 2. Importar na Vercel
+## 2. Configurar a Vercel
 
-1. Abra https://vercel.com/new e entre na sua conta.
-2. Conecte o GitHub se for solicitado e permita acesso ao repositório `Seu-Caderno-Virtual-`.
-3. Selecione esse repositório e clique em **Import**.
-4. Use as configurações abaixo. O arquivo `vercel.json` já define o framework, o comando de build e a pasta de saída.
+Abra seu projeto em https://vercel.com/dashboard. Para um novo, use https://vercel.com/new e importe `projects-yuri/Seu-Caderno-Virtual-`.
 
 | Campo | Valor |
 | --- | --- |
-| Project Name | `seu-caderno-virtual` (ou outro nome livre) |
+| Project Name | `seu-caderno-virtual` ou outro nome livre |
 | Framework Preset | **Other** |
-| Root Directory | raiz do repositório, `./` |
+| Root Directory | **raiz do repositório, `./`** |
 | Build Command | `npm run build` |
 | Output Directory | `dist` |
-| Install Command | automático (npm) |
-| Environment Variables | nenhuma |
+| Install Command | automático com npm, ou `npm ci` |
+| Node.js | 22 ou superior |
 
-5. Clique em **Deploy** e aguarde a confirmação.
-6. Abra a URL que a Vercel informar. O endereço real será criado na sua conta; não é o link do protótipo do ChatGPT.
+**Não use `dist` em Root Directory.** A raiz contém o `package.json`; `dist` é o resultado servido. Se aparecer `No Output Directory named "dist"`, confira os dois campos separadamente. Use um nome como `seu-caderno-virtual`, sem espaços, exclamação ou três hífens consecutivos.
 
-Mantenha **Root Directory na raiz**, não em `dist`: a Vercel precisa encontrar o `package.json` e o `vercel.json`. `dist` é apenas a pasta de saída.
+Publique e copie a URL de produção real. Ela será necessária nas URLs autorizadas do Supabase.
 
-## 3. Atualizar depois
+## 3. Ativar as contas
 
-Edite os arquivos, envie um novo commit ao GitHub e acompanhe a nova publicação na Vercel. Com a integração Git ativa, novos commits na branch de produção geram novos deployments.
+Siga [ATIVAR_CONTAS.md](ATIVAR_CONTAS.md): crie seu Supabase, execute o SQL, configure e-mail e URLs, adicione as duas variáveis na Vercel e faça **um novo deployment**.
 
-## 4. Levar as notas do protótipo para a Vercel
+| Variável | Valor |
+| --- | --- |
+| `SUPABASE_URL` | URL HTTPS do projeto Supabase |
+| `SUPABASE_PUBLISHABLE_KEY` | Chave pública publishable do projeto |
 
-As anotações são locais por domínio. Antes de trocar de endereço:
+Nunca use `secret` ou `service_role`. Credenciais SMTP ficam apenas no Supabase. Variáveis são incorporadas no build: adicioná-las sem refazer o deploy não ativa contas no site já publicado. Se ambas estiverem ausentes, continua em modo local; se apenas uma existir, o build falha.
 
-1. No protótipo antigo, abra **Backup → Baixar backup completo**.
-2. No site da Vercel, abra **Backup → Restaurar um backup**.
-3. Escolha o arquivo JSON e confira a confirmação antes de restaurar.
+## 4. Preservar as notas anteriores
 
-O tema claro/escuro é uma preferência separada: escolha novamente no botão de lua/sol do site novo.
+Antes de trocar de domínio, use **Backup → Baixar backup completo** no endereço antigo. No novo, use **Backup → Restaurar um backup**.
 
-Backups do protótipo anterior também são aceitos. Os cadernos antigos entram no projeto **Meus cadernos** e podem ser reorganizados depois. Nesta versão, os projetos compartilham o limite total de 3 cadernos e 300 páginas.
+Depois de entrar em uma conta nova, aceite **Trazer meus projetos** e aguarde **Salvo na nuvem**. Se a conta já tiver conteúdo, use **Minha conta → Trazer para esta conta**, confira o aviso de substituição e guarde o backup anterior. Sem login, as notas continuam locais por domínio.
 
-## Executar no computador
-
-Com Node.js instalado, abra o terminal na pasta que contém o `package.json` e execute:
+## Desenvolvimento
 
 ```bash
+npm ci
 npm run dev
-```
-
-Abra http://localhost:5173. Não é necessário instalar dependências. Para conferir o projeto:
-
-```bash
 npm run build
 npm test
 ```
 
-Não abra `dist/index.html` com duplo clique: o editor usa módulos JavaScript e precisa de um servidor HTTP.
+O servidor usa http://localhost:5173. Após alterações, envie um commit e acompanhe o deployment da branch de produção na Vercel.
 
-## Se aparecer um erro
+## Problemas comuns
 
-- **404 no endereço principal:** confira se `dist/index.html` foi enviado e se Output Directory está em `dist`.
-- **package.json não encontrado:** Root Directory deve apontar para a pasta que contém esse arquivo.
-- **Pasta dist não encontrada:** envie a pasta inteira, sem mudar seu nome.
-- **O repositório não aparece para importar:** confira as permissões da conexão GitHub na Vercel para esse repositório.
-- **As notas antigas não aparecem:** exporte e restaure o backup; o navegador não transfere notas entre domínios automaticamente.
+- **404 no início:** confira `dist/index.html` no GitHub e Output Directory em `dist`.
+- **package.json não encontrado:** Root Directory deve ser a raiz.
+- **Build sem esbuild/SDK:** envie `package.json` e `package-lock.json` novos e permita a instalação npm. Dependências de desenvolvimento são necessárias ao build.
+- **Contas não ativadas:** adicione as duas variáveis e refaça o deployment.
+- **E-mail não chega ou “Email address not authorized”:** confira SMTP próprio; o envio padrão é restrito a endereços da equipe Supabase.
+- **Conta abre, mas notas não carregam:** execute o SQL no mesmo Supabase da URL e chave usadas na Vercel.
+- **Link leva ao endereço errado:** ajuste Site URL/Redirect URLs e peça um link novo.
+- **Notas antigas não aparecem:** confira a conta; conteúdo de outro domínio precisa de backup/importação.
 
-Referências oficiais:
-
-- https://vercel.com/docs/git
-- https://vercel.com/docs/builds/configure-a-build
-- https://vercel.com/docs/project-configuration/vercel-json
+Referências oficiais: [build](https://vercel.com/docs/builds/configure-a-build), [variáveis](https://vercel.com/docs/environment-variables), [vercel.json](https://vercel.com/docs/project-configuration/vercel-json).
