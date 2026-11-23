@@ -1,6 +1,6 @@
 import {icon} from './icons.js';
 import {createAccountController} from './accounts.js';
-import {createFolderController} from './folders.js';
+import {createFolderController} from './folder.js';
 import {STORAGE_KEY, COLORS, PAPERS, initialState, validateState, makeNotebook, makeProject, projectNotebooks, moveNotebook, removeProject, totalCapacity, canAddNotebook, usedPages, pageHasContent, plainText} from './storage.js';
 
 const $ = (selector, root = document) => root.querySelector(selector);
