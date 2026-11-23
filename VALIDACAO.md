@@ -1,18 +1,22 @@
-# Verificação desta versão
+# Validação — versão 0.5.0
 
-Versão 0.4.0 — contas Supabase preparadas para configuração pelo responsável do site.
+## Verificações executadas
 
-## Executado
+- `npm ci --ignore-scripts --no-audit --no-fund`: dependências instaladas.
+- `npm test`: **53 testes aprovados, nenhum com falha**.
+- `npm run build`: concluído, incluindo validação de sintaxe de todos os módulos.
+- `git diff --check`: sem erros de formatação.
 
-- Instalação npm das dependências declaradas, com lockfile.
-- `npm run build`: sintaxe JavaScript, empacotamento do SDK e geração da configuração pública.
-- `npm test`: **39 testes aprovados**, incluindo os do protótipo anterior, em Node.js 24.
-- SQL executado em PostgreSQL via PGlite com papéis `authenticated` e `anon`, usuários simulados e políticas RLS reais. Testados acesso por dono, bloqueio anônimo, tentativa de acessar outra conta, limites, projetos inexistentes, revisão concorrente e reexecução sem apagar dados.
-- Sincronização testada com armazenamento e rede controlados: falta de conexão, retomada após recarregar, conflitos, digitação durante leitura/salvamento e resposta antiga depois de trocar de conta.
-- Interface revisada no navegador: aviso sem configuração, entrada, cadastro, recuperação e abertura de notas antigas. Os formulários foram inspecionados com configuração ilustrativa de prévia; nenhum cadastro ou e-mail real foi enviado.
+Os testes da camada de pastas usam implementações simuladas dos identificadores de arquivo, permissões e IndexedDB. Cobrem gravação e reabertura, cancelamento do seletor, autorização ao voltar, falha de disco e permissão, novas edições durante uma gravação, separação por conta, respostas atrasadas, conflito entre abas, arquivo corrompido, importação com backup anterior, recuperação de rascunho, restauração, navegador incompatível, falha do cache, importação repetida e falha na primeira gravação.
 
-## Depende da sua configuração
+Também foram executados os testes de configuração pública, provedor de importação somente por leitura, validação de backups, projetos e cadernos, isolamento das fotos de perfil e compatibilidade das migrações históricas do PostgreSQL.
 
-Não foi criado um projeto Supabase, configurado SMTP ou publicado um deployment na sua Vercel nesta etapa. Não houve login real, teste de entrega de e-mail, confirmação de endereço nem alteração de senha em um serviço real. Execute o roteiro de `ATIVAR_CONTAS.md` depois de conectar seus serviços.
+## Verificações que ainda precisam de navegador real
 
-O pacote é entregue com `dist/public-config.js` em modo local, sem credenciais reais. A Vercel gera a configuração ativa a partir das variáveis públicas no próximo build.
+A verificação visual foi bloqueada pelo ambiente: o Chromium local não conseguiu iniciar e o navegador remoto não conseguiu acessar o servidor local. Não houve teste concluído do seletor nativo de pastas nem validação visual em computador ou celular.
+
+O roteiro de aceitação manual após publicar está em `PUBLICAR.md`. Confirme especialmente seleção e autorização da pasta no Chrome/Edge, gravação de uma anotação, reabertura e importação dos dados antigos. O teste de integração com uma conta Supabase real e o deployment na Vercel não foram executados nesta sessão.
+
+## Estado da entrega
+
+Os arquivos foram alterados e validados localmente. A integração GitHub retornou `403 Resource not accessible by integration` ao tentar criar uma branch. A alternativa por Git não possui credenciais de escrita. Nenhum commit foi enviado ao repositório remoto; nenhum deployment, configuração do Supabase ou dado do usuário foi alterado.
