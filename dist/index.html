@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#f8f7f2">
-  <meta name="description" content="Organize seus estudos em projetos, cadernos e páginas. Uma mesa para cada projeto, modo escuro e até três cadernos e 300 páginas no total.">
+  <meta name="description" content="Organize seus estudos em projetos, cadernos e páginas. Uma mesa para cada projeto, modo escuro e cadernos salvos na pasta do seu computador.">
   <title>Seu Caderno Virtual!</title>
   <script>
     (() => {
@@ -22,6 +22,7 @@
   <link rel="stylesheet" href="./projects.css">
   <link rel="stylesheet" href="./accounts.css">
   <link rel="stylesheet" href="./profile-photo.css">
+  <link rel="stylesheet" href="./folders.css">
   <script type="module" src="./app.js"></script>
 </head>
 <body>
@@ -36,6 +37,7 @@
       <a href="#/notas" data-nav="notas"><span data-icon="notes"></span>Todas as notas</a>
     </nav>
     <div class="header-actions">
+      <button class="button button-outline folder-button" id="folder-button" type="button"><span data-icon="folder"></span><span>Escolher pasta</span></button>
       <button class="icon-button theme-toggle" id="theme-toggle" type="button" aria-label="Ativar modo escuro" aria-pressed="false" title="Ativar modo escuro"><span data-icon="moon"></span></button>
       <button class="icon-button" id="help-button" aria-label="Como usar" title="Como usar"><span data-icon="help"></span></button>
       <button class="button button-outline backup-header" id="backup-button"><span data-icon="download"></span>Backup</button>
@@ -44,7 +46,7 @@
   </header>
   <div id="cloud-banner" class="cloud-banner" role="status" aria-live="polite" hidden></div>
   <main id="main" tabindex="-1"></main>
-  <footer class="site-footer" id="site-footer"><span>Feito para dar espaço às suas ideias.</span><button type="button" id="cloud-indicator" class="cloud-indicator"><span data-icon="lock"></span><span>Somente neste navegador</span></button><a href="https://github.com/projects-yuri/Seu-Caderno-Virtual-" target="_blank" rel="noopener noreferrer">Um projeto em construção<span data-icon="github"></span></a></footer>
+  <footer class="site-footer" id="site-footer"><span>Feito para dar espaço às suas ideias.</span><button type="button" id="cloud-indicator" class="cloud-indicator"><span data-icon="lock"></span><span>Escolha uma pasta para começar</span></button><a href="https://github.com/projects-yuri/Seu-Caderno-Virtual-" target="_blank" rel="noopener noreferrer">Um projeto em construção<span data-icon="github"></span></a></footer>
   <dialog id="app-dialog" aria-labelledby="dialog-title"></dialog>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
   <input type="file" id="import-file" accept="application/json,.json" hidden>
