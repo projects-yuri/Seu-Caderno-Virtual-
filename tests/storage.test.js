@@ -7,25 +7,19 @@ test('a primeira mesa oferece três cadernos de 100 páginas e IDs únicos', () 
  assert.equal(state.notebooks.length, 3);
  assert.equal(totalCapacity(state), 300);
  assert.equal(new Set(state.notebooks.map(book => book.id)).size, 3);
- assert.equal(canAddNotebook(state), false);
+ assert.equal(canAddNotebook(state), true);
  assert.deepEqual(validateState(state), state);
 });
-test('um novo caderno precisa respeitar ambos os limites', () => {
- const state = initialState(); state.notebooks.pop();
+test('cadernos não têm limite global; cada caderno mantém de 100 a 300 páginas', () => {
+ const state = initialState();
+ for (let i = 0; i < 20; i++) state.notebooks.push(makeNotebook({capacity: 300}));
  assert.equal(canAddNotebook(state), true);
- assert.equal(canAddNotebook(state, 101), false);
- state.notebooks[0].capacity = 200;
- assert.equal(canAddNotebook(state), false);
- state.notebooks.pop();
- assert.equal(canAddNotebook(state), true);
- state.notebooks = [makeNotebook({capacity: 300})];
- assert.equal(canAddNotebook(state), false);
-});
-test('o backup rejeita um quarto caderno e mais de 300 páginas', () => {
- const fourth = initialState(); fourth.notebooks.push(makeNotebook());
- assert.throws(() => validateState(fourth));
- const tooManyPages = initialState(); tooManyPages.notebooks[0].capacity = 101;
- assert.throws(() => validateState(tooManyPages), /300/);
+ assert.equal(canAddNotebook(state, 101), true);
+ assert.equal(canAddNotebook(state, 301), false);
+ assert.equal(canAddNotebook(state, 99), false);
+ assert.deepEqual(validateState(state), state);
+ state.notebooks[0].capacity = 301;
+ assert.throws(() => validateState(state));
 });
 test('o backup rejeita páginas fora do caderno, IDs duplicados e protótipos como cores', () => {
  const invalidPage = initialState();
@@ -61,14 +55,14 @@ test('capacidades de 100 a 300 e uma mesa vazia são recuperáveis', () => {
  assert.equal(canAddNotebook(state, 300), true);
 });
 
-test('projetos agrupam os cadernos sem alterar os limites globais', () => {
+test('projetos agrupam os cadernos sem impor limite global', () => {
  const state = initialState();
  const college = makeProject({title: 'Faculdade — CD'}); state.projects.push(college);
  moveNotebook(state, state.notebooks[0].id, college.id);
  assert.equal(projectNotebooks(state, college.id).length, 1);
  assert.equal(projectNotebooks(state, DEFAULT_PROJECT_ID).length, 2);
  assert.equal(totalCapacity(state), 300);
- assert.equal(canAddNotebook(state), false);
+ assert.equal(canAddNotebook(state), true);
  assert.deepEqual(validateState(state), state);
 });
 test('mover um caderno preserva todas as páginas, favoritos e o título', () => {
