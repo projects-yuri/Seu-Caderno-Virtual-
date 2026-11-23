@@ -1,0 +1,10 @@
+.folder-actions { display:flex; flex-wrap:wrap; gap:10px; margin:18px 0; }
+.folder-path { padding:12px; border:1px solid #79847755; border-radius:8px; overflow-wrap:anywhere; font-size:13px; }
+.folder-copy { padding:14px; border:1px solid #79847755; border-radius:8px; font-size:13px; }
+.folder-copy > div { display:flex; flex-wrap:wrap; gap:14px; margin-top:10px; }
+.folder-copy strong { overflow-wrap:anywhere; }
+.header-actions { flex-wrap:wrap; }
+.folder-button { white-space:nowrap; }
+@media (max-width:1000px) { .site-header { flex-wrap:wrap; gap:14px; } .header-actions { margin-left:auto; } }
+@media (max-width:700px) { .folder-button { padding:8px 10px; font-size:12px; } .folder-actions .button { flex:1 1 100%; justify-content:center; } }
+@media print { .folder-button { display:none; } }
