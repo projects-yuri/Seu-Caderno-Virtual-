@@ -7,7 +7,37 @@ Esta versão inclui projetos, cadernos, modo escuro e contas opcionais com Supab
 1. Extraia o ZIP e abra https://github.com/projects-yuri/Seu-Caderno-Virtual-
 2. Use **Add file → Upload files** e envie os arquivos e pastas **de dentro** da pasta extraída. Substitua os antigos pelos desta versão.
 3. Confira que `package.json`, `package-lock.json` e `vercel.json` estão na raiz, ao lado de `dist`, `scripts`, `src`, `supabase` e `tests`. Não envie o ZIP fechado nem crie uma pasta extra dentro do repositório.
-4. Confirme em **Commit changes**.
+4. Confirme em **Commit changes**.# Publicar a versão com pasta local
+
+1. Envie os arquivos atualizados ao mesmo repositório do GitHub, preservando os diretórios `dist`, `scripts`, `src`, `supabase` e `tests`.
+2. Na Vercel, mantenha o projeto ligado a esse repositório, o comando `npm run build` e a pasta de saída `dist` conforme `vercel.json`.
+3. Mantenha `SUPABASE_URL` e `SUPABASE_PUBLISHABLE_KEY` no ambiente Production. Nunca use secret ou service_role no aplicativo.
+4. Faça um novo deployment. Se a alteração estiver em uma branch, revise a prévia antes de integrar na branch de produção.
+5. Abra a versão publicada no Chrome ou Edge, entre na conta e clique em **Escolher pasta**.
+6. Importe os cadernos antigos, confira uma anotação e aguarde **Salvo na pasta do computador**. Feche e reabra o site e confirme a leitura dos arquivos.
+
+## O que mudar no Supabase
+
+Nada precisa ser desativado. Authentication continua responsável pelo login. O Storage continua responsável pela foto de perfil. A tabela `notebook_workspaces` fica disponível para leitura dos dados anteriores, sob as permissões existentes por usuário.
+
+Esta versão não chama a função `save_notebook_workspace`. Não precisa aplicar migração SQL nova nem ampliar os limites da tabela. As migrações antigas ficam no repositório como documentação e para testes de compatibilidade. Se o projeto já estava configurado, não precisa executá-las novamente.
+
+Não apague tabelas, contas, buckets ou anotações durante a atualização. A limpeza futura dos dados antigos deve ocorrer somente após os usuários confirmarem suas cópias; ela não é automatizada aqui.
+
+No Authentication, mantenha **Site URL** e **Redirect URLs** como `https://seu-caderno-virtual.vercel.app/`, sem `#/projetos`.
+
+## Verificação manual após publicar
+
+- Selecionar pasta e cancelar: o site continua pedindo uma pasta, sem dizer que salvou.
+- Criar um quarto caderno e uma anotação: conferir o conteúdo em `conta-ID/cadernos.json` e reabrir o site.
+- Retirar e conceder novamente a permissão: confirmar aviso e reconexão.
+- Abrir duas abas e alterar o mesmo conjunto: verificar o conflito sem sobrescrita silenciosa.
+- Importar da nuvem: verificar a cópia anterior, a anotação importada e a preservação dos dados no Supabase.
+- Sair e entrar em outra conta: conferir que as subpastas e anotações ficam separadas.
+- Usar um navegador sem seleção de pasta: conferir a orientação de compatibilidade e o bloqueio de edição.
+
+O site não tem garantia de abertura offline. Os arquivos já salvos ficam no computador; para editar, o aplicativo precisa ter sido carregado.
+
 
 Não envie `node_modules`, `.env` com valores reais ou credenciais SMTP. O `.env.example` contém apenas nomes de variáveis e pode ser enviado; os guias também informam esses nomes caso o upload pelo navegador oculte arquivos iniciados por ponto.
 
