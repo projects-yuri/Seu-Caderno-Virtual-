@@ -1,5 +1,6 @@
 export const STORAGE_KEY = 'seu-caderno-virtual:v1';
-export const MAX_NOTEBOOKS = 3;
+// The folder owns the workspace; there is no global notebook or page quota.
+// Keep a per-notebook bound for the page navigation UI.
 export const MAX_PAGES = 300;
 export const DEFAULT_PROJECT_ID = 'projeto-pessoal';
 export const COLORS = {
@@ -42,9 +43,9 @@ export function plainText(html = '') {
  return html.replace(/<br\s*\/?\s*>/gi, '\n').replace(/<\/(?:p|div|li|h[1-6])>/gi, '\n').replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&amp;/g, '&');
 }
 export function usedPages(book) { return Object.values(book.pages).filter(pageHasContent).length; }
-export function canAddNotebook(state, capacity = 100) { return state.notebooks.length < MAX_NOTEBOOKS && Number.isInteger(capacity) && capacity >= 100 && totalCapacity(state) + capacity <= MAX_PAGES; }
+export function canAddNotebook(state, capacity = 100) { return Number.isInteger(capacity) && capacity >= 100 && capacity <= MAX_PAGES; }
 export function validateState(input) {
- if (!input || ![1, 2].includes(input.version) || !Array.isArray(input.notebooks) || input.notebooks.length > MAX_NOTEBOOKS) throw new Error('Este arquivo não é um backup válido do Seu Caderno Virtual.');
+ if (!input || ![1, 2].includes(input.version) || !Array.isArray(input.notebooks)) throw new Error('Este arquivo não é um backup válido do Seu Caderno Virtual.');
  // Backups from the first prototype gain one project without changing their notes.
  if (input.version === 1) input = {...input, version: 2, projects: [makeProject({id: DEFAULT_PROJECT_ID, title: 'Meus cadernos', subtitle: 'Anotações do primeiro protótipo'})], activeProjectId: DEFAULT_PROJECT_ID, notebooks: input.notebooks.map(book => ({...book, projectId: DEFAULT_PROJECT_ID}))};
  if (!Array.isArray(input.projects)) throw new Error('Os projetos deste backup são inválidos.');
@@ -68,7 +69,6 @@ export function validateState(input) {
   return {id: book.id, projectId: book.projectId, title: book.title.trim(), subtitle: book.subtitle, color: book.color, paper: book.paper, capacity: book.capacity, pages};
  });
  const result = {version: 2, desk: ['oak', 'walnut', 'light'].includes(input.desk) ? input.desk : 'oak', lastOpened: null, activeProjectId: projectIds.has(input.activeProjectId) ? input.activeProjectId : projects[0]?.id || null, projects, notebooks};
- if (totalCapacity(result) > MAX_PAGES) throw new Error('O limite é de 300 páginas no total.');
  const last = input.lastOpened;
  if (last && notebooks.some(b => b.id === last.notebookId && Number.isInteger(last.page) && last.page >= 1 && last.page <= b.capacity)) result.lastOpened = {notebookId: last.notebookId, page: last.page};
  return result;
